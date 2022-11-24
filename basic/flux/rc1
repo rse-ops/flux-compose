@@ -1,0 +1,123 @@
+#!/bin/bash -e
+
+# Allow connector-local more time to start listening on socket
+RANK=$(FLUX_LOCAL_CONNECTOR_RETRY_COUNT=30 flux getattr rank)
+
+# Usage: modload {all|<rank>} modname [args ...]
+modload() {
+    local where=$1; shift
+    if test "$where" = "all" || test $where -eq $RANK; then
+        flux module load $*
+    fi
+}
+
+backing_module() {
+    local backingmod=$(flux getattr content.backing-module 2>/dev/null) || :
+    echo ${backingmod:-content-sqlite}
+}
+
+# Get the latest config in case it changed while upstream broker was down.
+# See also: flux-framework/flux-core#4663
+if test $RANK -gt 0; then
+    flux config reload
+fi
+
+modload all barrier
+
+if test $RANK -eq 0; then
+    backingmod=$(backing_module)
+    dumpfile=$(flux getattr content.restore 2>/dev/null) || :
+    if test -n "${dumpfile}"; then
+        if test "${dumpfile}" = "auto"; then
+            statedir=$(flux getattr statedir 2>/dev/null) || :
+            dumplink="${statedir:-.}/dump/RESTORE"
+            if test -h "${dumplink}"; then
+                dumpfile=$(readlink -f ${dumplink}) || :
+            else
+                dumpfile=""
+                dumplink=""
+            fi
+        fi
+    fi
+    if test -n "${dumpfile}"; then
+        if test "${backingmod}" != "none"; then
+            flux module load ${backingmod} truncate
+        fi
+        echo "restoring content from ${dumpfile}"
+        flux restore --quiet --checkpoint ${dumpfile}
+        if test -n "${dumplink}"; then
+            rm -f ${dumplink}
+        fi
+    elif test "${backingmod}" != "none"; then
+        flux module load ${backingmod}
+    fi
+fi
+
+modload all kvs
+modload all kvs-watch
+
+if test $RANK -eq 0; then
+    if test "$(backing_module)" != "none"; then
+        flux startlog --post-start-event
+    fi
+fi
+
+# from @vsoch
+# noverify was added so we don't verify resource hostnames for docker-compose
+modload all resource noverify
+modload 0 cron sync=heartbeat.pulse
+modload 0 job-manager
+modload all job-info
+modload 0 job-list
+period=`flux config get --default= archive.period`
+if test $RANK -eq 0 -a -n "${period}"; then
+    flux module load job-archive
+fi
+
+if test $RANK -eq 0; then
+    if test "$(backing_module)" != "none"; then
+        if ! flux startlog --check --quiet; then
+            flux queue stop
+            flux queue disable --all \
+                "Flux is in safe mode due to an incomplete shutdown."
+        fi
+    fi
+fi
+
+modload all job-ingest
+modload 0 job-exec
+modload 0 heartbeat
+
+core_dir=$(cd ${0%/*} && pwd -P)
+all_dirs=$core_dir${FLUX_RC_EXTRA:+":$FLUX_RC_EXTRA"}
+IFS=:
+shopt -s nullglob
+for rcdir in $all_dirs; do
+    for rcfile in $rcdir/rc1.d/*; do
+	echo running $rcfile
+        $rcfile
+    done
+done
+shopt -u nullglob
+
+# Print module that has registered 'sched' service, if any
+lookup_sched_module() {
+    flux module list | awk '$6 == "sched" { print $1 }'
+}
+
+if test $RANK -eq 0 -a "${FLUX_SCHED_MODULE}" != "none" \
+                    -a -z "$(lookup_sched_module)"; then
+    flux module load ${FLUX_SCHED_MODULE:-sched-simple}
+fi
+
+if test $RANK -eq 0; then
+    method=$(flux config get --default=notset exec.method)
+    if test "${method}" != "systemd" \
+            -a -z "${FLUX_DISABLE_JOB_CLEANUP}"; then
+	flux admin cleanup-push <<-EOT
+	flux queue stop --quiet
+	flux job cancelall --user=all --quiet -f --states RUN
+	flux queue idle --quiet
+	EOT
+    fi
+fi
