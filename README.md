@@ -5,10 +5,12 @@
 This is a small example of getting Flux running with docker compose!
 We organize in subfolders in case there is desire to support future (different) examples:
 
- - [basic](basic): a setup with a rabbit service container alongside flux, no web interfaace
+ - [basic](basic): a setup (without replicas) with a rabbit servicve alongside flux.
+ - [replicas](replicas): a setup with a rabbit service container alongside flux using docker-compose replicas no web interface
   
 For each example, the default will scale your cluster to 3 workers and one main broker (a total size of 4 nodes)
-and it can be customized.
+and it can be customized. We highly recommend using the [basic](basic) approach as it more accurately can
+give an exact hostname to each of the workers.
  
 ## General Setup
 
@@ -18,8 +20,7 @@ For examples you will need:
  - [Docker Compose](https://docs.docker.com/compose/)
 
 Note that newer versions of docker include `compose` directly alongside the client (e.g., `docker compose`).
-If you have an old version of Docker, you can [install docker compose](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-20-04) and instead use `docker-compose`. It's not clear how long the older
-client will be supported, so it's recommended that you upgrade!
+If you have an old version of Docker, you can [install docker compose](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-20-04) and instead use `docker-compose`. It's not clear how long the older client will be supported, so it's recommended that you upgrade!
 
 See the `README.md` inside each directory for specific usage instructions. 
 

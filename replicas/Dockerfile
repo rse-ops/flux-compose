@@ -28,7 +28,7 @@ RUN mkdir -p ${STATE_DIR} /etc/flux/system /etc/flux/system/cron.d /etc/flux/con
     flux keygen /mnt/curve/curve.cert && \
 
     # Important: "basic" is the directory name here
-    flux R encode --hosts="node-[1-${workers}]" > /etc/flux/system/R && \
+    flux R encode --hosts="replicas-node-[1-${workers}]" > /etc/flux/system/R && \
     chown -R fluxuser:fluxuser /run/flux ${STATE_DIR} /mnt/curve/curve.cert ${workdir}
 
 WORKDIR /home/fluxuser

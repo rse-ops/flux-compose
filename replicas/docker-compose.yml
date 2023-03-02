@@ -13,16 +13,17 @@ x-shared-build-args: &shared-build-args
     
 # Shared environment for runtime
 x-shared-environment: &shared-environment
-  SPL_BROKER_URL: amqp://fluxuser:fluxrabbit@rabbit:5672//
-  mainHost: node-1
-  workdir: /code/workdir
+  RABBIT_BROKER_URL: amqp://fluxuser:fluxrabbit@rabbit:5672//
+  
+  # Note this is the directory name "replicas"
+  mainHost: replicas-node-1
+  workdir: /home/fluxuser
   <<: *workers
 
 x-shared-volumes: &shared-volumes
   - ./flux/imp.toml:/etc/flux/imp/conf.d/imp.toml
   - ./flux/broker.toml:/etc/flux/config/broker.toml
   - ./flux/rc1:/etc/flux/rc1
-  - ./:/code/workdir
 
 services:
   rabbit:
@@ -38,49 +39,18 @@ services:
       - RABBITMQ_DEFAULT_USER=fluxuser
       - RABBITMQ_DEFAULT_PASS=fluxrabbit
    
-  node-1:
+  node:
+    # Will generate replicas-node-1, replicas-node-2, .. replicas-node-N.
     build:
       context: ./
       args: *shared-build-args
-    hostname: node-1
-    container_name: node-1
+      
     networks:
       - rabbitmq
     environment: *shared-environment
     volumes: *shared-volumes
-
-  node-2:
-    build:
-      context: ./
-      args: *shared-build-args
-    hostname: node-2      
-    container_name: node-2
-    networks:
-      - rabbitmq
-    environment: *shared-environment
-    volumes: *shared-volumes
-
-  node-3:
-    build:
-      context: ./
-      args: *shared-build-args
-    hostname: node-3
-    container_name: node-3
-    networks:
-      - rabbitmq
-    environment: *shared-environment
-    volumes: *shared-volumes
-
-  node-4:
-    build:
-      context: ./
-      args: *shared-build-args
-    container_name: node-4
-    hostname: node-4
-    networks:
-      - rabbitmq
-    environment: *shared-environment
-    volumes: *shared-volumes
+    deploy:
+      <<: *workers
 
 networks:
   rabbitmq:

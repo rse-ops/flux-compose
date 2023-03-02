@@ -17,5 +17,5 @@ default_bind = "tcp://eth0:%%p"
 default_connect = "tcp://%%h:%%p"
 # docker-compose starts counting at 1, what a monster
 hosts = [
-	{ host="node-[1-4]"},
+	{ host="replicas-node-[1-4]"},
 ]

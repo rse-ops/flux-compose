@@ -56,7 +56,7 @@ cat /etc/flux/imp/conf.d/imp.toml
 if [ ${thisHost} != "${mainHost}" ]; then
     printf "\n😪 Sleeping to give broker time to start...\n"
     sleep 15
-    FLUX_FAKE_HOSTNAME=$thisHost flux start -o --config /etc/flux/config ${brokerOptions} sleep inf
+    FLUX_FAKE_HOSTNAME=$thisHost flux start -o --config /etc/flux/config ${brokerOptions}
 else
     echo "Extra arguments are: $@"
     printf "flux start -o --config /etc/flux/config ${brokerOptions} sleep inf\n"
