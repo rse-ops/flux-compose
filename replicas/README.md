@@ -111,7 +111,7 @@ At this point, let's try communicating with rabbit. The dummy credentials
 are hard coded in our example script (I know, I'm a terrible person):
 
 ```bash
-$ python3 job.py
+python3 job.py
 ```
 ```console
 👋️ Sent 'Hello World!'
@@ -120,14 +120,14 @@ $ python3 job.py
 Now try running with Flux:
 
 ```bash
-$ flux submit python3 job.py 
+flux submit python3 job.py 
 ƒVL9T1RZ
 ```
 
 And get the logs:
 
 ```bash
-$ flux job attach ƒVL9T1RZ
+flux job attach $(flux job last)
 👋️ Sent 'Hello World!'
 ```
 
@@ -139,8 +139,8 @@ Have fun!
 Make sure to stop and remove containers!
 
 ```bash
-$ docker compose stop
-$ docker compose rm
+docker compose stop
+docker compose rm
 ```
 
 ## Developer
@@ -152,7 +152,7 @@ and while some of it is OK, this is an overly simplified version and you should
 generally consult the [Flux docs](https://flux-framework.readthedocs.io/en/latest/adminguide.html)
 admin guide. However, there are some tweaks we do here _just_ for docker-compose you should know about!
 
-1. The [flux/rc1](flux/rc1) script is duplicated (on 11/23/2022) to include the `noverify` plugin. If there is an update to the script in upstream, likely you want to copy it again and add this module. The reason we have to do this is because docker compose provides hostnames as the container identifiers, and Flux checks this against the resources defined. By adding `noverify` we skip this check.
+1. We need to tell the broker.toml to load the `noverify` plugin under the `resource` directive.  The reason we have to do this is because docker compose provides hostnames as the container identifiers, and Flux checks this against the resources defined. By adding `noverify` we skip this check.
 2. We derive and export `FLUX_FAKE_HOSTNAME` to coincide with the name provided by docker so the hosts register.
 3. The directory name "replicas" is referenced in the [docker-compose.yml](docker-compose.yml) and the [Dockerfile](Dockerfile) and you need to change these references if you deploy from a different directory.
 4. The number of workers is also fairly hard coded! See [customization](#customization) below for tweaking this.

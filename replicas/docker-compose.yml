@@ -41,7 +41,6 @@ services:
     build:
       context: ./
       args: *shared-build-args
-    hostname: replicas-node
       
     networks:
       - rabbitmq

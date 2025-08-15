@@ -130,7 +130,8 @@ and while some of it is OK, this is an overly simplified version and you should
 generally consult the [Flux docs](https://flux-framework.readthedocs.io/en/latest/adminguide.html)
 admin guide. However, there are some tweaks we do here _just_ for docker-compose you should know about!
 
-1. The [flux/rc1](flux/rc1) script is duplicated (on 11/23/2022) to include the `noverify` plugin. If there is an update to the script in upstream, likely you want to copy it again and add this module. The reason we have to do this is because docker compose provides hostnames as the container identifiers, and Flux checks this against the resources defined. By adding `noverify` we skip this check.
+1. We need to tell the broker.toml to load the `noverify` plugin under the `resource` directive.  The reason we have to do this is because docker compose provides hostnames as the container identifiers, and Flux checks this against the resources defined. By adding `noverify` we skip this check.
+checks this against the resources defined. By adding `noverify` we skip this check.
 2. We derive and export `FLUX_FAKE_HOSTNAME` to coincide with the name provided by docker so the hosts register.
 
 This is a fairly new setup, so please let us know if you run into issues.
