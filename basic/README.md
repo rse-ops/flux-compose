@@ -22,7 +22,7 @@ and provide a [scripts/job.py](scripts/job.py) to submit to Flux that mostly doe
 You can first build the images (used for workers and broker):
 
 ```bash
-$ docker compose build
+docker compose build
 ```
 
 Note this will trigger three builds, so be careful! If you want to build just once,
@@ -35,13 +35,13 @@ Then bring them up! You'll see the rabbit image pull if you don't have it alread
 Since we are starting a cluster, it's recommended to start in detached mode:
 
 ```bash
-$ docker compose up -d
+docker compose up -d
 ```
 
 You can then see containers running:
 
 ```bash
-$ docker compose ps
+docker compose ps
 ```
 ```console
 NAME                COMMAND                  SERVICE             STATUS              PORTS
@@ -55,17 +55,17 @@ rabbitmq            "docker-entrypoint.s…"   rabbit              running      
 Since we have defined the containers separately, to look at logs we can target any individual one:
 
 ```bash
-$ docker compose logs node-1
-$ docker compose logs node-2
-$ docker compose logs node-3
-$ docker compose logs node-4
+docker compose logs node-1
+docker compose logs node-2
+docker compose logs node-3
+docker compose logs node-4
 ```
 
 Add an `-f` to keep the log open.
 Now you can shell in to interact with your cluster (shelling into the main broker below):
 
 ```bash
-$ docker exec -it node-1 bash
+docker exec -it node-1 bash
 ```
 
 And flux should be up and running - you can submit jobs, etc.
@@ -88,7 +88,7 @@ At this point, let's try communicating with rabbit. The dummy credentials
 are hard coded in our example script (I know, I'm a terrible person):
 
 ```bash
-$ python3 job.py
+python3 job.py
 ```
 ```console
 👋️ Sent 'Hello World!'
@@ -97,14 +97,15 @@ $ python3 job.py
 Now try running with Flux:
 
 ```bash
-$ flux mini submit python3 job.py 
+flux run python3 job.py
+flux submit python3 job.py 
 ƒVL9T1RZ
 ```
 
 And get the logs:
 
 ```bash
-$ flux job attach ƒVL9T1RZ
+flux job attach $(flux job last)
 👋️ Sent 'Hello World!'
 ```
 
@@ -116,8 +117,8 @@ Have fun!
 Make sure to stop and remove containers!
 
 ```bash
-$ docker compose stop
-$ docker compose rm
+docker compose stop
+docker compose rm
 ```
 
 ## Developer

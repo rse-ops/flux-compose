@@ -1,5 +1,3 @@
-version: "3.9"
-
 # Shared number of replicas (workers) for build and runtime
 # This includes the broker
 x-shared-workers:
@@ -8,7 +6,7 @@ x-shared-workers:
 
 # Build args that go into building container
 x-shared-build-args: &shared-build-args
-  flux_sched_version: focal
+  flux_sched_version: jammy
   <<: *workers
     
 # Shared environment for runtime
@@ -21,7 +19,6 @@ x-shared-environment: &shared-environment
 x-shared-volumes: &shared-volumes
   - ./flux/imp.toml:/etc/flux/imp/conf.d/imp.toml
   - ./flux/broker.toml:/etc/flux/config/broker.toml
-  - ./flux/rc1:/etc/flux/rc1
   - ./:/code/workdir
 
 services:

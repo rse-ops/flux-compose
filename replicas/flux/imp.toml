@@ -1,3 +1,0 @@
-[exec]
-allowed-users = [ "flux", "root" ]
-allowed-shells = [ "/usr/libexec/flux/flux-shell" ]
