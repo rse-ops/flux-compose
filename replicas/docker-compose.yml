@@ -1,0 +1,54 @@
+# Shared number of replicas (workers) for build and runtime
+# This includes the broker
+x-shared-workers:
+  &workers
+  replicas: 4
+
+# Build args that go into building container
+x-shared-build-args: &shared-build-args
+  flux_sched_version: jammy
+  <<: *workers
+    
+# Shared environment for runtime
+x-shared-environment: &shared-environment
+  RABBIT_BROKER_URL: amqp://fluxuser:fluxrabbit@rabbit:5672//
+  
+  # Note this is the directory name "replicas"
+  mainHost: replicas-node-1
+  workdir: /home/fluxuser
+  <<: *workers
+
+x-shared-volumes: &shared-volumes
+  - ./flux/imp.toml:/etc/flux/imp/conf.d/imp.toml
+  - ./flux/broker.toml:/etc/flux/config/broker.toml
+
+services:
+  rabbit:
+    restart: always
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=fluxuser
+      - RABBITMQ_DEFAULT_PASS=fluxrabbit
+   
+  node:
+    # Will generate replicas-node-1, replicas-node-2, .. replicas-node-N.
+    build:
+      context: ./
+      args: *shared-build-args
+      
+    networks:
+      - rabbitmq
+    environment: *shared-environment
+    volumes: *shared-volumes
+    deploy:
+      <<: *workers
+
+networks:
+  rabbitmq:
+    driver: bridge

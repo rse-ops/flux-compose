@@ -5,12 +5,13 @@
 This is a small example of getting Flux running with docker compose!
 We organize in subfolders in case there is desire to support future (different) examples:
 
- - [basic](basic): a setup with a rabbit servicve alongside flux.
+ - [basic](basic): a setup (without replicas) with a rabbit servicve alongside flux.
+ - [replicas](replicas): a setup with a rabbit service container alongside flux using docker-compose replicas no web interface
   
 For each example, the default will scale your cluster to 3 workers and one main broker (a total size of 4 nodes)
 and it can be customized. We highly recommend using the [basic](basic) approach as it more accurately can
-give an exact hostname to each of the workers.
- 
+give an exact hostname to each of the workers. 
+
 ## General Setup
 
 For examples you will need:
