@@ -51,7 +51,6 @@ cat /etc/flux/imp/conf.d/imp.toml
 # The curve cert is generated on container build
 # We assume the munge.key is the same also since we use the same base container!
 # located at /etc/munge/munge.key
-
 # Give broker time to start before workers
 if [ ${thisHost} != "${mainHost}" ]; then
     printf "\n😪 Sleeping to give broker time to start...\n"
